@@ -7,7 +7,7 @@
   "logoText": "Fabric-Pro",
   "logoImage": "/uploads/2026-06/1782404219621-site-logo.webp",
   "logoAlt": "Fabric-Pro",
-  "favicon": "",
+  "favicon": "/uploads/2026-06/1782404242859-site-favicon.png",
   "fontPreset": "roboto",
   "fontFamily": "Roboto, Arial, sans-serif",
   "typography": {
@@ -148,84 +148,84 @@
       "slug": "textile-industry",
       "order": 1,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Textile Machinery",
       "slug": "textile-machinery",
       "order": 2,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Sustainable Fabrics",
       "slug": "sustainable-fabrics",
       "order": 3,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Textile Recycling",
       "slug": "textile-recycling",
       "order": 4,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Fabric Manufacturing",
       "slug": "fabric-manufacturing",
       "order": 5,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Apparel Materials",
       "slug": "apparel-materials",
       "order": 6,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Technical Textiles",
       "slug": "technical-textiles",
       "order": 7,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Smart Textiles",
       "slug": "smart-textiles",
       "order": 8,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Dyeing and Finishing",
       "slug": "dyeing-and-finishing",
       "order": 9,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Supply Chain and Sourcing",
       "slug": "supply-chain-and-sourcing",
       "order": 10,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Textile Exports",
       "slug": "textile-exports",
       "order": 11,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "Policy and Regulations",
       "slug": "policy-and-regulations",
       "order": 12,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     }
   ],
   "tags": [
@@ -234,77 +234,77 @@
       "slug": "textile-industry",
       "order": 1,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "textile machinery",
       "slug": "textile-machinery",
       "order": 2,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "sustainable fabrics",
       "slug": "sustainable-fabrics",
       "order": 3,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "textile recycling",
       "slug": "textile-recycling",
       "order": 4,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "fabric manufacturing",
       "slug": "fabric-manufacturing",
       "order": 5,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "apparel materials",
       "slug": "apparel-materials",
       "order": 6,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "technical textiles",
       "slug": "technical-textiles",
       "order": 7,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "smart textiles",
       "slug": "smart-textiles",
       "order": 8,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "dyeing and finishing",
       "slug": "dyeing-and-finishing",
       "order": 9,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "sourcing",
       "slug": "sourcing",
       "order": 10,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     },
     {
       "name": "textile exports",
       "slug": "textile-exports",
       "order": 11,
       "visible": true,
-      "updatedDate": "2026-06-25T16:17:01.124Z"
+      "updatedDate": "2026-06-25T16:17:25.372Z"
     }
   ],
   "adWidgets": []
