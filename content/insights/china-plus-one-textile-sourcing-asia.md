@@ -17,26 +17,6 @@ canonicalUrl: "/insights/china-plus-one-textile-sourcing-asia"
 status: "published"
 ---
 
-# Article 1: How China+1 Sourcing Is Reshaping Asia's Textile Supply Chain
-
-## SEO Details
-
-## URL Slug: china-plus-one-textile-sourcing-asia
-
-## Primary Keyword: China+1 textile sourcing
-
-Secondary Keywords: Asia apparel sourcing; textile supply chain Asia; Vietnam textile exports; India textile sourcing; Bangladesh garment exports; Indonesia apparel sourcing
-
-Long-Tail Keywords: China+1 strategy for apparel brands; best Asian textile sourcing countries after China; how textile sourcing is shifting in Asia
-
-Suggested
-
-Target Reader: Sourcing managers, apparel brands, exporters, fabric suppliers, consultants
-
-## Search Intent: Commercial and strategic research
-
-## Estimated Reading Time: 10 minutes
-
 ## How China+1 Sourcing Is Reshaping Asia's Textile Supply Chain
 
 ## Key Takeaways
