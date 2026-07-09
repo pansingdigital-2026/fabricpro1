@@ -17,21 +17,6 @@ canonicalUrl: "/insights/china-plus-one-textile-sourcing-asia"
 status: "published"
 ---
 
-meta\_title: "China+1 Textile Sourcing in Asia | Fabric-Pro Insight"
-meta\_description: "China+1 sourcing is changing textile supply chains across India, Vietnam, Bangladesh, Indonesia and China. See what buyers should watch."
-author: "Fabric-Pro Editorial Team"
-reviewed\_by: "Textile Industry Analyst"
-published\_on: "[Add Date]"
-last\_updated: "[Add Date]"
-category: "Insights"
-tags:
-  - "China+1"
-  - "Asia textile sourcing"
-  - "apparel sourcing"
-  - "textile exports"
-  - "fabric supply chain"
----
-
 # Article 1: How China+1 Sourcing Is Reshaping Asia's Textile Supply Chain
 
 ## SEO Details
