@@ -347,6 +347,13 @@ function articleMeta(article) {
   </div>`;
 }
 
+function articleHeaderMeta(article) {
+  return `<div class="article-meta article-meta-header">
+    <span>${escapeHtml(formatDate(article.publishedDate))}</span>
+    <span>${escapeHtml(article.readingMinutes)} min read</span>
+  </div>`;
+}
+
 export function articleCard(article, options = {}) {
   const loading = options.eager ? "eager" : "lazy";
   return `<article class="article-card">
@@ -375,7 +382,11 @@ function sidebarList(title, articles) {
   return `<section class="sidebar-block">
     <h2>${escapeHtml(title)}</h2>
     <div class="compact-list">
-      ${articles.map((article) => `<a href="${escapeAttr(article.url)}"><span>${escapeHtml(article.title)}</span><small>${escapeHtml(formatDate(article.publishedDate))}</small></a>`).join("")}
+      ${articles.map((article) => `<a href="${escapeAttr(article.url)}" class="${article.featuredImage ? "has-thumb" : ""}">
+        ${article.featuredImage ? `<img src="${escapeAttr(article.featuredImage)}" alt="${escapeAttr(article.altText || article.title)}" width="96" height="72" loading="lazy" decoding="async">` : ""}
+        <small>${escapeHtml(formatDate(article.publishedDate))}</small>
+        <span>${escapeHtml(article.title)}</span>
+      </a>`).join("")}
     </div>
   </section>`;
 }
@@ -632,7 +643,7 @@ export function articlePage({ article, related = [], sidebarLatestArticles = [] 
         <div class="article-hero">
           <header class="article-header">
             ${breadcrumbsHtml(breadcrumbs)}
-            ${articleMeta(article)}
+            ${articleHeaderMeta(article)}
             <h1>${escapeHtml(article.title)}</h1>
             <p class="dek">${escapeHtml(article.excerpt)}</p>
             ${bylineParts.length ? `<div class="author-line">${bylineParts.join(" · ")}</div>` : ""}

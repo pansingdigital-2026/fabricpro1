@@ -418,11 +418,35 @@ textarea:focus-visible {
   padding: 12px 0;
   border-bottom: 1px solid var(--border, #dfe5e2);
   font-weight: 800;
+  text-decoration: none;
+}
+
+.compact-list a.has-thumb {
+  grid-template-columns: 72px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+}
+
+.compact-list img {
+  grid-row: span 2;
+  width: 72px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--accent-soft, #ecf7f5);
 }
 
 .compact-list small {
   color: var(--muted, #5b6268);
   font-weight: 600;
+}
+
+.compact-list span {
+  line-height: 1.25;
+}
+
+.compact-list a:hover span {
+  color: var(--accent, #16756f);
 }
 
 .content-section {
