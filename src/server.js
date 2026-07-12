@@ -154,11 +154,14 @@ async function publicRouter(req, res, url, pathname) {
       const slug = pathname.replace(`${meta.path}/`, "");
       const article = getArticle(type, slug);
       if (!article) return send(res, 404, errorPage(404));
-      const related = getArticles()
+      const related = getArticlesByType(type)
         .filter((item) => item.url !== article.url && item.categorySlug === article.categorySlug)
-        .slice(0, 6);
-      const sidebarArticles = nearbyArticlesForSidebar(article, getArticlesByType(type), 6);
-      return send(res, 200, articlePage({ article, related, sidebarArticles }));
+        .slice(0, 3);
+      const relatedUrls = new Set(related.map((item) => item.url));
+      const sidebarLatestArticles = sidebarLatestForArticle(article, 6)
+        .filter((item) => !relatedUrls.has(item.url))
+        .slice(0, 3);
+      return send(res, 200, articlePage({ article, related, sidebarLatestArticles }));
     }
   }
 
@@ -323,24 +326,16 @@ function redirectAfterSave(res, path, result) {
   return redirect(res, `${path}?saved=${result.github ? "github" : "local"}`);
 }
 
-function offsetArticles(currentArticle, articles = [], limit = 6) {
-  const pool = articles.filter((item) => item.url !== currentArticle.url);
-  const currentIndex = articles.findIndex((item) => item.url === currentArticle.url);
-  if (currentIndex <= 0) return pool.slice(0, limit);
-  const before = articles.slice(0, currentIndex).reverse();
-  const after = articles.slice(currentIndex + 1);
-  return [...before, ...after].filter((item) => item.url !== currentArticle.url).slice(0, limit);
+function sidebarLatestTypeFor(articleType) {
+  if (articleType === "insights") return "news";
+  return "insights";
 }
 
-function nearbyArticlesForSidebar(article, sameTypeArticles = [], limit = 6) {
-  const sameCategory = sameTypeArticles.filter((item) => item.categorySlug === article.categorySlug);
-  const categoryMatches = offsetArticles(article, sameCategory, limit);
-  if (categoryMatches.length >= limit) return categoryMatches;
-
-  const seen = new Set(categoryMatches.map((item) => item.url));
-  const sameTypeMatches = offsetArticles(article, sameTypeArticles, limit)
-    .filter((item) => !seen.has(item.url));
-  return [...categoryMatches, ...sameTypeMatches].slice(0, limit);
+function sidebarLatestForArticle(article, limit = 3) {
+  const sidebarType = sidebarLatestTypeFor(article.type);
+  return getArticlesByType(sidebarType)
+    .filter((item) => item.url !== article.url)
+    .slice(0, limit);
 }
 
 function sendJson(res, status, data) {
@@ -563,6 +558,17 @@ async function saveSettings(req, res) {
       visible: fieldValue(fields, `homeVisible-${index}`) === "true"
     });
   }
+  const defaultArticleText = defaultSettings().articlePageText;
+  settings.articlePageText = {
+    searchPlaceholder: fieldValue(fields, "articleText_searchPlaceholder") || defaultArticleText.searchPlaceholder,
+    popularCategoriesTitle: fieldValue(fields, "articleText_popularCategoriesTitle") || defaultArticleText.popularCategoriesTitle,
+    newsSidebarLatestTitle: fieldValue(fields, "articleText_newsSidebarLatestTitle") || defaultArticleText.newsSidebarLatestTitle,
+    blogsSidebarLatestTitle: fieldValue(fields, "articleText_blogsSidebarLatestTitle") || defaultArticleText.blogsSidebarLatestTitle,
+    insightsSidebarLatestTitle: fieldValue(fields, "articleText_insightsSidebarLatestTitle") || defaultArticleText.insightsSidebarLatestTitle,
+    relatedTitle: fieldValue(fields, "articleText_relatedTitle") || defaultArticleText.relatedTitle,
+    emptyRelatedText: fieldValue(fields, "articleText_emptyRelatedText") || defaultArticleText.emptyRelatedText,
+    emptySidebarLatestText: fieldValue(fields, "articleText_emptySidebarLatestText") || defaultArticleText.emptySidebarLatestText
+  };
   settings.categories = [];
   const categoryCount = Number(fieldValue(fields, "categoryCount", 0));
   for (let index = 0; index < categoryCount; index += 1) {

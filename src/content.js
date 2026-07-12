@@ -124,6 +124,16 @@ export function defaultSettings() {
       { type: "blogs", title: "Latest Blogs", visible: true, limit: 6 },
       { type: "insights", title: "Latest Insights", visible: true, limit: 6 }
     ],
+    articlePageText: {
+      searchPlaceholder: "Search Fabric-Pro",
+      popularCategoriesTitle: "Popular Categories",
+      newsSidebarLatestTitle: "Latest Insights",
+      blogsSidebarLatestTitle: "Latest Insights",
+      insightsSidebarLatestTitle: "Latest News",
+      relatedTitle: "Related Reading",
+      emptyRelatedText: "No related articles found.",
+      emptySidebarLatestText: "No articles available."
+    },
     categories: defaultCategories(),
     tags: defaultTags(),
     adWidgets: []

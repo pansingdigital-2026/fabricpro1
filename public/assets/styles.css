@@ -773,14 +773,19 @@ textarea:focus-visible {
   padding-left: 1.25rem;
 }
 
-.article-sidebar-list {
+.article-sidebar-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.article-sidebar-block {
   padding: 16px;
   background: #fff;
   border: 1px solid var(--border, #dfe5e2);
   border-radius: 8px;
 }
 
-.article-sidebar-list h2 {
+.article-sidebar-block h2 {
   margin: 0 0 4px;
   padding-bottom: 10px;
   border-bottom: 2px solid var(--text, #101214);
@@ -788,10 +793,68 @@ textarea:focus-visible {
   line-height: 1.2;
 }
 
-.article-sidebar-list p {
+.article-sidebar-block p {
   margin: 10px 0 6px;
   color: var(--muted, #5b6268);
   font-size: 0.9rem;
+}
+
+.article-sidebar-search form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.article-sidebar-search input {
+  min-height: 42px;
+}
+
+.article-sidebar-search button {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--text, #101214);
+  border-radius: 6px;
+  background: var(--text, #101214);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.article-sidebar-search button:hover {
+  background: var(--accent, #16756f);
+  border-color: var(--accent, #16756f);
+}
+
+.article-sidebar-categories {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.article-sidebar-categories a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #dfe5e2);
+  color: var(--text, #101214);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.article-sidebar-categories a:last-child {
+  border-bottom: 0;
+}
+
+.article-sidebar-categories small {
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft, #ecf7f5);
+  color: var(--accent, #16756f);
+  font-size: 0.78rem;
+  text-align: center;
 }
 
 .article-sidebar-items {
@@ -805,6 +868,21 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--border, #dfe5e2);
   color: var(--text, #101214);
   text-decoration: none;
+}
+
+.article-sidebar-item.has-thumb {
+  grid-template-columns: 72px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+}
+
+.article-sidebar-item.has-thumb img {
+  grid-row: span 2;
+  width: 72px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--accent-soft, #ecf7f5);
 }
 
 .article-sidebar-item:last-child {

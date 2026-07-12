@@ -391,30 +391,64 @@ function mobileHomeSection(title, href, articles, prioritizeFirst = false) {
   </section>`;
 }
 
-function relatedArticlesSection(related) {
+function relatedArticlesSection(related, text = {}) {
+  const title = text.relatedTitle || "Related Reading";
+  const emptyText = text.emptyRelatedText || "No related articles found.";
   return `<section class="related-articles" aria-labelledby="related-articles-title">
     <div class="section-header">
-      <h2 id="related-articles-title">Related Articles</h2>
+      <h2 id="related-articles-title">${escapeHtml(title)}</h2>
     </div>
     <div class="card-grid related-grid">
-      ${related.length ? related.slice(0, 6).map((article) => articleCard(article)).join("") : emptyState("More articles in this category will appear here as they are published.")}
+      ${related.length ? related.slice(0, 3).map((article) => articleCard(article)).join("") : emptyState(emptyText)}
     </div>
   </section>`;
 }
 
-function articleSidebarSection(article, sidebarArticles = []) {
-  if (!sidebarArticles.length) return "";
-  const typeLabel = contentTypes[article.type]?.plural || "Articles";
-  return `<section class="article-sidebar-list" aria-labelledby="article-sidebar-title">
-    <h2 id="article-sidebar-title">More ${escapeHtml(typeLabel)}</h2>
-    <p>Latest articles near this one.</p>
-    <div class="article-sidebar-items">
-      ${sidebarArticles.map((item) => `<a class="article-sidebar-item" href="${escapeAttr(item.url)}">
-        <span>${escapeHtml(formatDate(item.publishedDate))}</span>
-        <strong>${escapeHtml(item.title)}</strong>
-      </a>`).join("")}
-    </div>
-  </section>`;
+function sidebarLatestTitle(articleType, text = {}) {
+  if (articleType === "news") return text.newsSidebarLatestTitle || "Latest Insights";
+  if (articleType === "blogs") return text.blogsSidebarLatestTitle || "Latest Insights";
+  return text.insightsSidebarLatestTitle || "Latest News";
+}
+
+function sidebarTinyImage(article) {
+  if (!article.featuredImage) return "";
+  return `<img src="${escapeAttr(article.featuredImage)}" alt="${escapeAttr(article.altText || article.title)}" width="96" height="72" loading="lazy" decoding="async">`;
+}
+
+function articleSidebarSection(article, latestArticles = [], text = {}) {
+  const categories = getCategories().filter((category) => category.visible !== false).slice(0, 10);
+  const latestTitle = sidebarLatestTitle(article.type, text);
+  return `<div class="article-sidebar-stack">
+    <section class="article-sidebar-block article-sidebar-search" aria-labelledby="article-sidebar-search-title">
+      <h2 id="article-sidebar-search-title" class="visually-hidden">Search</h2>
+      <form action="/search" method="get" role="search">
+        <label class="visually-hidden" for="article-sidebar-search-input">Search Fabric-Pro</label>
+        <input id="article-sidebar-search-input" name="q" type="search" placeholder="${escapeAttr(text.searchPlaceholder || "Search Fabric-Pro")}" autocomplete="off">
+        <button type="submit">Search</button>
+      </form>
+    </section>
+
+    <section class="article-sidebar-block" aria-labelledby="article-sidebar-categories-title">
+      <h2 id="article-sidebar-categories-title">${escapeHtml(text.popularCategoriesTitle || "Popular Categories")}</h2>
+      <div class="article-sidebar-categories">
+        ${categories.length ? categories.map((category) => `<a href="/category/${escapeAttr(category.slug)}">
+          <span>${escapeHtml(category.name)}</span>
+          ${Number(category.count) ? `<small>${escapeHtml(category.count)}</small>` : ""}
+        </a>`).join("") : emptyState("No categories available.")}
+      </div>
+    </section>
+
+    <section class="article-sidebar-block" aria-labelledby="article-sidebar-latest-title">
+      <h2 id="article-sidebar-latest-title">${escapeHtml(latestTitle)}</h2>
+      <div class="article-sidebar-items">
+        ${latestArticles.length ? latestArticles.map((item) => `<a class="article-sidebar-item ${item.featuredImage ? "has-thumb" : ""}" href="${escapeAttr(item.url)}">
+          ${sidebarTinyImage(item)}
+          <span>${escapeHtml(formatDate(item.publishedDate))}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+        </a>`).join("") : emptyState(text.emptySidebarLatestText || "No articles available.")}
+      </div>
+    </section>
+  </div>`;
 }
 
 export function homePage({ news, blogs, insights }) {
@@ -578,12 +612,15 @@ export function tagPage({ tag, articles }) {
   });
 }
 
-export function articlePage({ article, related = [], sidebarArticles = [] }) {
-  const siteUrl = settingsSiteUrl(loadSettings());
+export function articlePage({ article, related = [], sidebarLatestArticles = [] }) {
+  const settings = loadSettings();
+  const siteUrl = settingsSiteUrl(settings);
+  const articleText = settings.articlePageText || {};
+  const sectionCrumb = { label: contentTypes[article.type].plural, url: contentTypes[article.type].path };
   const breadcrumbs = [
     { label: "Home", url: "/" },
-    { label: contentTypes[article.type].plural, url: contentTypes[article.type].path },
-    { label: article.title, url: article.url }
+    sectionCrumb,
+    ...(article.category ? [{ label: article.category, url: `/category/${article.categorySlug}` }] : [])
   ];
   const bylineParts = [
     article.showAuthor && article.authorName ? `By ${escapeHtml(article.authorName)}` : "",
@@ -611,11 +648,11 @@ export function articlePage({ article, related = [], sidebarArticles = [] }) {
             ${renderAd("article-bottom")}
           </div>
           <aside class="article-aside">
-            ${articleSidebarSection(article, sidebarArticles)}
+            ${articleSidebarSection(article, sidebarLatestArticles, articleText)}
             ${renderAd("article-sidebar")}
           </aside>
         </div>
-        ${relatedArticlesSection(related)}
+        ${relatedArticlesSection(related, articleText)}
       </div>
     </article>
   `;

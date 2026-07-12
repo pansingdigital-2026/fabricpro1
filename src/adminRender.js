@@ -369,6 +369,7 @@ export function settingsPage({ notice = "" } = {}) {
   const categories = [...(settings.categories || []), {}, {}, {}];
   const tags = [...(settings.tags || []), {}, {}, {}, {}];
   const typography = settings.typography || defaults.typography || {};
+  const articlePageText = { ...(defaults.articlePageText || {}), ...(settings.articlePageText || {}) };
   const typographyRows = [
     { key: "menu", label: "Header menu text" },
     { key: "homeLeadTitle", label: "Homepage featured title" },
@@ -450,6 +451,21 @@ export function settingsPage({ notice = "" } = {}) {
           </table>
         </div>
         <input type="hidden" name="homeCount" value="3">
+
+        <h2>Article page sidebar and related reading</h2>
+        <p class="admin-help">These labels control the article detail page sidebar and the bottom related reading section.</p>
+        <div class="form-grid two">
+          <label>Search placeholder <input name="articleText_searchPlaceholder" value="${escapeAttr(articlePageText.searchPlaceholder || "")}" placeholder="Search Fabric-Pro"></label>
+          <label>Popular categories title <input name="articleText_popularCategoriesTitle" value="${escapeAttr(articlePageText.popularCategoriesTitle || "")}" placeholder="Popular Categories"></label>
+          <label>News sidebar latest title <input name="articleText_newsSidebarLatestTitle" value="${escapeAttr(articlePageText.newsSidebarLatestTitle || "")}" placeholder="Latest Insights"></label>
+          <label>Blog sidebar latest title <input name="articleText_blogsSidebarLatestTitle" value="${escapeAttr(articlePageText.blogsSidebarLatestTitle || "")}" placeholder="Latest Insights"></label>
+          <label>Insights sidebar latest title <input name="articleText_insightsSidebarLatestTitle" value="${escapeAttr(articlePageText.insightsSidebarLatestTitle || "")}" placeholder="Latest News"></label>
+          <label>Related section title <input name="articleText_relatedTitle" value="${escapeAttr(articlePageText.relatedTitle || "")}" placeholder="Related Reading"></label>
+        </div>
+        <div class="form-grid two">
+          <label>Empty related text <input name="articleText_emptyRelatedText" value="${escapeAttr(articlePageText.emptyRelatedText || "")}" placeholder="No related articles found."></label>
+          <label>Empty sidebar latest text <input name="articleText_emptySidebarLatestText" value="${escapeAttr(articlePageText.emptySidebarLatestText || "")}" placeholder="No articles available."></label>
+        </div>
 
         <h2>Categories</h2>
         <p class="admin-help">These categories appear in the article editor dropdown and power category pages and related articles. Empty rows are ignored.</p>

@@ -35,7 +35,7 @@ GITHUB_TOKEN=github_pat_your_token_here
 GITHUB_REPO=your-github-username/your-fabric-pro-repository
 GITHUB_BRANCH=main
 GITHUB_CONTENT_BASE_PATH=
-ASSET_VERSION=20260712-sticky-sidebar
+ASSET_VERSION=20260712-article-sidebar-cleanup
 ```
 
 Do not create a `DATABASE_URL`; this code does not use one. Do not add `PORT` unless Hostinger asks you to, because its Node.js runtime normally provides the port itself.

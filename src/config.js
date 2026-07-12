@@ -28,7 +28,7 @@ export const config = {
   googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || process.env.GOOGLE_VERIFICATION_CODE || "",
   bingSiteVerification: process.env.BING_SITE_VERIFICATION || process.env.BING_VERIFICATION_CODE || "",
   gaMeasurementId: process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "",
-  assetVersion: process.env.ASSET_VERSION || "20260712-sticky-sidebar",
+  assetVersion: process.env.ASSET_VERSION || "20260712-article-sidebar-cleanup",
   github: {
     token: process.env.GITHUB_TOKEN || "",
     repo: process.env.GITHUB_REPO || "",
