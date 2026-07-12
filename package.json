@@ -11,5 +11,10 @@
     "start": "node app.js",
     "dev": "node --watch app.js",
     "check": "node src/check.js"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.0",
+    "markdown-it": "^14.3.0",
+    "sanitize-html": "^2.17.5"
   }
 }

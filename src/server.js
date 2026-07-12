@@ -2,6 +2,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { config, contentTypes, paths } from "./config.js";
+import { importDocxToHtml } from "./docxImportService.js";
 import {
   defaultSettings,
   formDateValue,
@@ -17,6 +18,7 @@ import {
 } from "./content.js";
 import { deleteSyncedFile, syncBinaryFile, syncTextFile } from "./github.js";
 import { fontPresets, fontStackFor, safeFontStack } from "./fonts.js";
+import { renderInlineFigure } from "./articleRenderer.js";
 import { parseRequestBody, fieldArray, fieldValue } from "./request.js";
 import {
   adsPage,
@@ -155,7 +157,8 @@ async function publicRouter(req, res, url, pathname) {
       const related = getArticles()
         .filter((item) => item.url !== article.url && item.categorySlug === article.categorySlug)
         .slice(0, 6);
-      return send(res, 200, articlePage({ article, related }));
+      const sidebarArticles = nearbyArticlesForSidebar(article, getArticlesByType(type), 6);
+      return send(res, 200, articlePage({ article, related, sidebarArticles }));
     }
   }
 
@@ -242,6 +245,8 @@ async function adminRouter(req, res, url, pathname) {
   }
 
   if (req.method === "POST" && pathname === "/admin/articles/save") return await saveArticle(req, res);
+  if (req.method === "POST" && pathname === "/admin/articles/import-docx") return await importDocxArticle(req, res);
+  if (req.method === "POST" && pathname === "/admin/articles/upload-inline-image") return await uploadInlineArticleImage(req, res);
   if (req.method === "POST" && pathname === "/admin/articles/delete") return await deleteArticle(req, res);
 
   if (pathname === "/admin/settings") {
@@ -318,6 +323,32 @@ function redirectAfterSave(res, path, result) {
   return redirect(res, `${path}?saved=${result.github ? "github" : "local"}`);
 }
 
+function offsetArticles(currentArticle, articles = [], limit = 6) {
+  const pool = articles.filter((item) => item.url !== currentArticle.url);
+  const currentIndex = articles.findIndex((item) => item.url === currentArticle.url);
+  if (currentIndex <= 0) return pool.slice(0, limit);
+  const before = articles.slice(0, currentIndex).reverse();
+  const after = articles.slice(currentIndex + 1);
+  return [...before, ...after].filter((item) => item.url !== currentArticle.url).slice(0, limit);
+}
+
+function nearbyArticlesForSidebar(article, sameTypeArticles = [], limit = 6) {
+  const sameCategory = sameTypeArticles.filter((item) => item.categorySlug === article.categorySlug);
+  const categoryMatches = offsetArticles(article, sameCategory, limit);
+  if (categoryMatches.length >= limit) return categoryMatches;
+
+  const seen = new Set(categoryMatches.map((item) => item.url));
+  const sameTypeMatches = offsetArticles(article, sameTypeArticles, limit)
+    .filter((item) => !seen.has(item.url));
+  return [...categoryMatches, ...sameTypeMatches].slice(0, limit);
+}
+
+function sendJson(res, status, data) {
+  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+  if (res._headOnly) return res.end();
+  res.end(JSON.stringify(data));
+}
+
 function dateFromField(value) {
   if (!value) return new Date().toISOString();
   return new Date(`${value}T00:00:00.000Z`).toISOString();
@@ -346,14 +377,58 @@ function saveTypographySettings(fields, defaults) {
   return typography;
 }
 
-async function maybeSaveImage(file, slug) {
+function datedUploadFolder(style = "month-dash") {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  return style === "year-month" ? `${year}/${month}` : `${year}-${month}`;
+}
+
+async function maybeSaveImage(file, slug, options = {}) {
   if (!file || !file.filename || !file.buffer?.length) return "";
   if (!file.contentType.startsWith("image/")) throw new Error("Uploaded file must be an image.");
-  const folder = new Date().toISOString().slice(0, 7);
+  const folder = options.folder || datedUploadFolder(options.folderStyle);
   const fileName = sanitizeFileName(`${slug}${path.extname(file.filename) || ".png"}`);
-  const relativePath = `public/uploads/${folder}/${fileName}`;
+  const relativePath = `${options.baseDir || "public/uploads"}/${folder}/${fileName}`;
   await syncBinaryFile(relativePath, file.buffer, `Upload ${fileName}`);
-  return `/uploads/${folder}/${fileName}`;
+  return `/${relativePath.replace(/^public\//, "").replace(/\\/g, "/")}`;
+}
+
+function linesToArray(value = "") {
+  return String(value || "")
+    .split(/\n+/)
+    .map((line) => line.replace(/^\s*[-*]\s+/, "").trim())
+    .filter(Boolean);
+}
+
+function parseFaqRows(fields) {
+  const rows = [];
+  const count = Number(fieldValue(fields, "faqCount", 0));
+  for (let index = 0; index < count; index += 1) {
+    const question = fieldValue(fields, `faqQuestion-${index}`).trim();
+    const answer = fieldValue(fields, `faqAnswer-${index}`).trim();
+    if (question && answer) rows.push({ question, answer });
+  }
+  return rows;
+}
+
+function parseSourceRows(fields) {
+  const rows = [];
+  const count = Number(fieldValue(fields, "sourceCount", 0));
+  for (let index = 0; index < count; index += 1) {
+    const name = fieldValue(fields, `sourceName-${index}`).trim();
+    const title = fieldValue(fields, `sourceTitle-${index}`).trim();
+    const url = fieldValue(fields, `sourceUrl-${index}`).trim();
+    if (name || title || url) rows.push({ name, title, url });
+  }
+  return rows;
+}
+
+function contentBodyForFormat(fields, contentFormat) {
+  if (contentFormat === "html" || contentFormat === "docx_imported") {
+    return fieldValue(fields, "contentHtml") || fieldValue(fields, "body");
+  }
+  return fieldValue(fields, "contentMarkdown") || fieldValue(fields, "body");
 }
 
 async function saveArticle(req, res) {
@@ -362,7 +437,10 @@ async function saveArticle(req, res) {
   const slug = slugify(fieldValue(fields, "slug") || fieldValue(fields, "title"));
   const uploadedImage = await maybeSaveImage(files.imageFile, slug);
   const featuredImage = uploadedImage || fieldValue(fields, "featuredImage");
-  const body = fieldValue(fields, "body");
+  const contentFormat = ["markdown", "html", "docx_imported"].includes(fieldValue(fields, "contentFormat"))
+    ? fieldValue(fields, "contentFormat")
+    : "markdown";
+  const body = contentBodyForFormat(fields, contentFormat);
   const category = fieldValue(fields, "newCategory").trim() || fieldValue(fields, "category");
   const selectedTags = fieldArray(fields, "selectedTags");
   const newTags = normalizeTags(fieldValue(fields, "newTags"));
@@ -372,20 +450,33 @@ async function saveArticle(req, res) {
     .map((tag) => [slugify(tag), tag])).values()];
   const data = {
     title: fieldValue(fields, "title"),
-    metaTitle: fieldValue(fields, "metaTitle") || fieldValue(fields, "title"),
-    metaDescription: fieldValue(fields, "metaDescription"),
+    meta_title: fieldValue(fields, "metaTitle") || fieldValue(fields, "title"),
+    meta_description: fieldValue(fields, "metaDescription"),
     slug,
+    article_type: fieldValue(fields, "articleType") || type,
     category,
-    author: fieldValue(fields, "author") || "Fabric-Pro Editorial Desk",
-    reviewedBy: fieldValue(fields, "reviewedBy"),
-    publishedDate: dateFromField(fieldValue(fields, "publishedDate")),
-    updatedDate: dateFromField(fieldValue(fields, "updatedDate")),
-    featuredImage,
-    altText: fieldValue(fields, "altText") || fieldValue(fields, "title"),
-    imageCaption: fieldValue(fields, "imageCaption"),
+    author_name: fieldValue(fields, "authorName") || "Fabric-Pro Editorial Desk",
+    show_author: fieldValue(fields, "showAuthor") === "true",
+    reviewer_name: fieldValue(fields, "reviewerName"),
+    show_reviewer: fieldValue(fields, "showReviewer") === "true",
+    published_date: dateFromField(fieldValue(fields, "publishedDate")),
+    last_updated_date: dateFromField(fieldValue(fields, "updatedDate")),
+    estimated_reading_time: fieldValue(fields, "estimatedReadingTime"),
+    featured_image: featuredImage,
+    featured_image_alt: fieldValue(fields, "altText") || fieldValue(fields, "title"),
+    image_caption: fieldValue(fields, "imageCaption"),
     tags,
+    primary_keyword: fieldValue(fields, "primaryKeyword"),
+    secondary_keywords: normalizeTags(fieldValue(fields, "secondaryKeywords")),
     excerpt: fieldValue(fields, "excerpt"),
-    canonicalUrl: fieldValue(fields, "canonicalUrl") || `${contentTypes[type].path}/${slug}`,
+    content_format: contentFormat,
+    key_takeaways: linesToArray(fieldValue(fields, "keyTakeaways")),
+    sources: parseSourceRows(fields),
+    faqs: parseFaqRows(fields),
+    canonical_url: fieldValue(fields, "canonicalUrl") || `${contentTypes[type].path}/${slug}`,
+    og_title: fieldValue(fields, "ogTitle"),
+    og_description: fieldValue(fields, "ogDescription"),
+    og_image: fieldValue(fields, "ogImage") || featuredImage,
     status: fieldValue(fields, "status") || "published"
   };
   const relativePath = `content/${type}/${slug}.md`;
@@ -397,6 +488,38 @@ async function saveArticle(req, res) {
     await deleteSyncedFile(`content/${originalType}/${originalSlug}.md`, `Remove old article path: ${originalType}/${originalSlug}`);
   }
   return redirectAfterSave(res, `/admin/articles/${type}/${slug}/edit`, result);
+}
+
+async function importDocxArticle(req, res) {
+  try {
+    const { fields, files } = await parseRequestBody(req);
+    const result = await importDocxToHtml(files.docxFile, {
+      slug: fieldValue(fields, "slug") || fieldValue(fields, "title") || "article"
+    });
+    return sendJson(res, 200, { ok: true, ...result });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || "DOCX import failed." });
+  }
+}
+
+async function uploadInlineArticleImage(req, res) {
+  try {
+    const { fields, files } = await parseRequestBody(req);
+    const slug = slugify(fieldValue(fields, "slug") || fieldValue(fields, "title") || "inline-image");
+    const src = await maybeSaveImage(files.inlineImage, slug, {
+      baseDir: "public/uploads/articles",
+      folderStyle: "year-month"
+    });
+    const alt = fieldValue(fields, "inlineImageAlt");
+    const caption = fieldValue(fields, "inlineImageCaption");
+    return sendJson(res, 200, {
+      ok: true,
+      src,
+      figure: renderInlineFigure({ src, alt, caption })
+    });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || "Image upload failed." });
+  }
 }
 
 async function deleteArticle(req, res) {

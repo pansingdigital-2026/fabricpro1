@@ -188,10 +188,64 @@ function tagChecklist(currentTags = []) {
   </fieldset>`;
 }
 
+function checked(value) {
+  return value ? "checked" : "";
+}
+
+function contentFormatSelect(selected = "markdown") {
+  const formats = [
+    ["markdown", "Markdown"],
+    ["html", "Rich HTML"],
+    ["docx_imported", "DOCX imported HTML"]
+  ];
+  return `<select name="contentFormat" data-content-format>${formats.map(([value, label]) => option(value, label, selected)).join("")}</select>`;
+}
+
+function keyTakeawayText(article) {
+  const takeaways = article?.keyTakeaways;
+  return Array.isArray(takeaways) ? takeaways.join("\n") : String(takeaways || "");
+}
+
+function faqRows(faqs = []) {
+  const rows = [...faqs, {}, {}, {}];
+  return `<fieldset class="admin-fieldset">
+    <legend>FAQs</legend>
+    <p class="admin-help">Optional. Add questions and answers only when you want an FAQ section and FAQ schema.</p>
+    <input type="hidden" name="faqCount" value="${rows.length}">
+    <div class="structured-list">
+      ${rows.map((item, index) => `<div class="structured-row">
+        <label>Question <input name="faqQuestion-${index}" value="${escapeAttr(item.question || "")}"></label>
+        <label>Answer <textarea name="faqAnswer-${index}" rows="2">${escapeHtml(item.answer || "")}</textarea></label>
+      </div>`).join("")}
+    </div>
+  </fieldset>`;
+}
+
+function sourceRows(sources = []) {
+  const rows = [...sources, {}, {}, {}];
+  return `<fieldset class="admin-fieldset">
+    <legend>Sources</legend>
+    <p class="admin-help">Optional. Add a source name, source title, and URL for citation links near the bottom of the article.</p>
+    <input type="hidden" name="sourceCount" value="${rows.length}">
+    <div class="structured-list">
+      ${rows.map((item, index) => `<div class="structured-row source-row">
+        <label>Source name <input name="sourceName-${index}" value="${escapeAttr(item.name || "")}" placeholder="Company, report, publication"></label>
+        <label>Title <input name="sourceTitle-${index}" value="${escapeAttr(item.title || "")}" placeholder="Source title"></label>
+        <label>URL <input name="sourceUrl-${index}" type="url" value="${escapeAttr(item.url || "")}" placeholder="https://"></label>
+      </div>`).join("")}
+    </div>
+  </fieldset>`;
+}
+
 export function articleFormPage({ article = null, notice = "" }) {
   const isEdit = Boolean(article);
   const type = article?.type || "news";
   const title = isEdit ? "Edit Article" : "New Article";
+  const contentFormat = article?.contentFormat || "markdown";
+  const markdownBody = article?.contentMarkdown || (contentFormat === "markdown" ? article?.bodyMarkdown : "") || articleTemplate(type);
+  const htmlBody = article?.contentHtml || (contentFormat === "html" || contentFormat === "docx_imported" ? article?.bodyMarkdown : "") || "";
+  const showAuthor = article ? article.showAuthor !== false : true;
+  const showReviewer = article ? article.showReviewer === true : false;
   return adminLayout({
     title,
     path: "/admin/articles",
@@ -200,7 +254,7 @@ export function articleFormPage({ article = null, notice = "" }) {
       <div class="admin-heading">
         <div>
           <h1>${title}</h1>
-          <p>Use the required SEO fields. The body supports Markdown and is rendered as HTML for search engines.</p>
+          <p>Use Markdown, paste clean HTML, or import a DOCX file. Article content is rendered as crawlable HTML.</p>
         </div>
         <a class="button secondary" href="/admin/articles">Back to Articles</a>
       </div>
@@ -216,12 +270,16 @@ export function articleFormPage({ article = null, notice = "" }) {
           </label>
           <label>Title <input name="title" required value="${escapeAttr(article?.title || "")}"></label>
           <label>Slug <input name="slug" required value="${escapeAttr(article?.slug || "")}" placeholder="article-slug"></label>
+          <label>Article type <input name="articleType" value="${escapeAttr(article?.articleType || type)}" placeholder="News, Blog, Insight, Analysis"></label>
           <label>Category ${categorySelect(article?.category || "")}</label>
           <label>New category <input name="newCategory" value="" placeholder="Only fill this to create/use a new category"></label>
-          <label>Author <input name="author" value="${escapeAttr(article?.author || "Fabric-Pro Editorial Desk")}"></label>
-          <label>Reviewed by <input name="reviewedBy" value="${escapeAttr(article?.reviewedBy || "")}"></label>
+          <label>Author name <input name="authorName" value="${escapeAttr(article?.authorName || article?.author || "Fabric-Pro Editorial Desk")}"></label>
+          <label class="check-label"><input name="showAuthor" type="checkbox" value="true" ${checked(showAuthor)}> Show author on article page</label>
+          <label>Reviewed by name <input name="reviewerName" value="${escapeAttr(article?.reviewerName || article?.reviewedBy || "")}"></label>
+          <label class="check-label"><input name="showReviewer" type="checkbox" value="true" ${checked(showReviewer)}> Show reviewed by on article page</label>
           <label>Published date <input name="publishedDate" type="date" value="${escapeAttr(formDateValue(article?.publishedDate))}"></label>
           <label>Updated date <input name="updatedDate" type="date" value="${escapeAttr(formDateValue(article?.updatedDate))}"></label>
+          <label>Estimated reading time <input name="estimatedReadingTime" type="number" min="1" value="${escapeAttr(article?.estimatedReadingTime || "")}" placeholder="Auto if blank"></label>
         </div>
         ${tagChecklist(article?.tags || [])}
         <div class="form-grid two">
@@ -229,6 +287,10 @@ export function articleFormPage({ article = null, notice = "" }) {
           <label>Canonical URL <input name="canonicalUrl" value="${escapeAttr(article?.canonicalUrl || "")}" placeholder="/news/article-slug"></label>
         </div>
         <label>Meta description <textarea name="metaDescription" rows="3" required>${escapeHtml(article?.metaDescription || "")}</textarea></label>
+        <div class="form-grid two">
+          <label>Primary keyword <input name="primaryKeyword" value="${escapeAttr(article?.primaryKeyword || "")}"></label>
+          <label>Secondary keywords <input name="secondaryKeywords" value="${escapeAttr((article?.secondaryKeywords || []).join(", "))}" placeholder="keyword one, keyword two"></label>
+        </div>
         <label>Excerpt <textarea name="excerpt" rows="3" required>${escapeHtml(article?.excerpt || "")}</textarea></label>
         <div class="form-grid two">
           <label>Featured image path <input name="featuredImage" value="${escapeAttr(article?.featuredImage || "")}" placeholder="/uploads/image.webp"></label>
@@ -236,12 +298,53 @@ export function articleFormPage({ article = null, notice = "" }) {
         </div>
         <label>Image alt text <input name="altText" value="${escapeAttr(article?.altText || "")}"></label>
         <label>Image caption <input name="imageCaption" value="${escapeAttr(article?.imageCaption || "")}" placeholder="Optional visible caption below the article image"></label>
-        <label>Article body (Markdown)
-          <textarea name="body" rows="24" class="markdown-editor" required>${escapeHtml(article?.bodyMarkdown || articleTemplate(type))}</textarea>
-        </label>
-        <div class="editor-help">
-          <strong>Markdown tips:</strong> Use <code>## Heading</code>, <code>**bold**</code>, bullet lists, links like <code>[label](https://example.com)</code>, and tables.
+        <div class="form-grid two">
+          <label>Open Graph title <input name="ogTitle" value="${escapeAttr(article?.ogTitle || "")}" placeholder="Optional social sharing title"></label>
+          <label>Open Graph image <input name="ogImage" value="${escapeAttr(article?.ogImage || "")}" placeholder="Defaults to featured image"></label>
         </div>
+        <label>Open Graph description <textarea name="ogDescription" rows="2">${escapeHtml(article?.ogDescription || "")}</textarea></label>
+
+        <section class="admin-card editor-tools">
+          <h2>Article content</h2>
+          <div class="form-grid two">
+            <label>Content format ${contentFormatSelect(contentFormat)}</label>
+            <label>Import DOCX file <input name="docxFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-docx-file></label>
+          </div>
+          <div class="button-row">
+            <button class="button secondary" type="button" data-docx-import>Import DOCX to editable HTML</button>
+            <span class="admin-help" data-docx-status></span>
+          </div>
+          <div class="editor-help">
+            <strong>DOCX formatting guide:</strong> For best results, use Word styles: Title for document title, Heading 2 for main sections, Heading 3 for sub-sections, bullet lists for Key Takeaways, Word tables for tables, and normal inserted images. Avoid manually changing font size instead of using heading styles.
+          </div>
+          <div class="docx-preview" data-docx-preview hidden></div>
+
+          <fieldset class="admin-fieldset inline-image-tool">
+            <legend>Insert inline image</legend>
+            <div class="form-grid three">
+              <label>Upload image <input name="inlineImage" type="file" accept="image/*" data-inline-image></label>
+              <label>Image alt text <input name="inlineImageAlt" data-inline-alt></label>
+              <label>Caption <input name="inlineImageCaption" data-inline-caption placeholder="Optional"></label>
+            </div>
+            <button class="button secondary" type="button" data-inline-insert>Insert image into article body</button>
+            <span class="admin-help" data-inline-status></span>
+          </fieldset>
+
+          <label data-format-panel="markdown">Markdown body
+            <textarea name="contentMarkdown" rows="24" class="markdown-editor" data-content-editor="markdown">${escapeHtml(markdownBody)}</textarea>
+          </label>
+          <label data-format-panel="html">HTML body
+            <textarea name="contentHtml" rows="24" class="markdown-editor code-editor" data-content-editor="html">${escapeHtml(htmlBody)}</textarea>
+          </label>
+        </section>
+        <div class="editor-help">
+          <strong>Markdown tips:</strong> Use <code>## Heading</code>, <code>**bold**</code>, bullet lists, links like <code>[label](https://example.com)</code>, and Markdown tables. If you include the article title again as the first heading, the site will remove the duplicate automatically.
+        </div>
+        <label>Key Takeaways
+          <textarea name="keyTakeaways" rows="5" placeholder="One takeaway per line">${escapeHtml(keyTakeawayText(article))}</textarea>
+        </label>
+        ${faqRows(article?.faqs || [])}
+        ${sourceRows(article?.sources || [])}
         <button class="button" type="submit">Save Article</button>
       </form>
     `

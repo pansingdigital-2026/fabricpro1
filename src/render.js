@@ -139,19 +139,14 @@ export function breadcrumbSchema(items, siteUrl) {
 }
 
 export function articleSchema(article, siteUrl) {
-  return {
+  const schema = {
     "@context": "https://schema.org",
     "@type": contentTypes[article.type]?.schemaType || "Article",
     headline: article.title,
     description: article.metaDescription || article.excerpt,
-    image: article.featuredImage ? [absoluteUrl(article.featuredImage, siteUrl)] : undefined,
+    image: article.ogImage || article.featuredImage ? [absoluteUrl(article.ogImage || article.featuredImage, siteUrl)] : undefined,
     datePublished: article.publishedDate,
     dateModified: article.updatedDate || article.publishedDate,
-    author: {
-      "@type": "Person",
-      name: article.author || "Fabric-Pro Editorial Desk"
-    },
-    ...(article.reviewedBy ? { reviewedBy: { "@type": "Person", name: article.reviewedBy } } : {}),
     publisher: {
       "@type": "Organization",
       name: "Fabric-Pro"
@@ -159,6 +154,37 @@ export function articleSchema(article, siteUrl) {
     mainEntityOfPage: absoluteUrl(article.url, siteUrl),
     articleSection: article.category,
     keywords: article.tags?.join(", ") || undefined
+  };
+  if (article.showAuthor && article.authorName) {
+    schema.author = {
+      "@type": "Person",
+      name: article.authorName
+    };
+  }
+  if (article.showReviewer && article.reviewerName) {
+    schema.reviewedBy = {
+      "@type": "Person",
+      name: article.reviewerName
+    };
+  }
+  return schema;
+}
+
+function faqSchema(article, siteUrl) {
+  const faqs = article.faqs || [];
+  if (!faqs.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntityOfPage: absoluteUrl(article.url, siteUrl),
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: stripHtml(item.answer)
+      }
+    }))
   };
 }
 
@@ -213,6 +239,9 @@ export function publicLayout({
   title = "",
   description = "",
   canonical = "",
+  ogTitle = "",
+  ogDescription = "",
+  ogImage = "",
   ogType = "website",
   image = "",
   imageAlt = "",
@@ -226,8 +255,10 @@ export function publicLayout({
   const siteName = settings.siteName || "Fabric-Pro";
   const pageTitle = title || settings.defaultMetaTitle || siteName;
   const pageDescription = description || settings.defaultMetaDescription || settings.tagline || "";
+  const socialTitle = ogTitle || pageTitle;
+  const socialDescription = ogDescription || pageDescription;
   const canonicalUrl = absoluteUrl(canonical || path, siteUrl);
-  const fullImage = image || settings.defaultSocialImage ? absoluteUrl(image || settings.defaultSocialImage, siteUrl) : "";
+  const fullImage = ogImage || image || settings.defaultSocialImage ? absoluteUrl(ogImage || image || settings.defaultSocialImage, siteUrl) : "";
   const socialImageAlt = imageAlt || `${siteName} article image`;
   const schemas = [
     organizationSchema(settings, siteUrl),
@@ -248,14 +279,14 @@ export function publicLayout({
   <link rel="alternate" type="application/rss+xml" title="${escapeAttr(siteName)} RSS Feed" href="${escapeAttr(absoluteUrl("/rss.xml", siteUrl))}">
   <meta property="og:type" content="${escapeAttr(ogType)}">
   <meta property="og:site_name" content="${escapeAttr(siteName)}">
-  <meta property="og:title" content="${escapeAttr(pageTitle)}">
-  <meta property="og:description" content="${escapeAttr(pageDescription)}">
+  <meta property="og:title" content="${escapeAttr(socialTitle)}">
+  <meta property="og:description" content="${escapeAttr(socialDescription)}">
   <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
   ${fullImage ? `<meta property="og:image" content="${escapeAttr(fullImage)}">` : ""}
   ${fullImage ? `<meta property="og:image:alt" content="${escapeAttr(socialImageAlt)}">` : ""}
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${escapeAttr(pageTitle)}">
-  <meta name="twitter:description" content="${escapeAttr(pageDescription)}">
+  <meta name="twitter:title" content="${escapeAttr(socialTitle)}">
+  <meta name="twitter:description" content="${escapeAttr(socialDescription)}">
   ${fullImage ? `<meta name="twitter:image" content="${escapeAttr(fullImage)}">` : ""}
   ${faviconTags(settings, siteUrl)}
   ${verificationTags(settings)}
@@ -266,7 +297,7 @@ export function publicLayout({
   ${jsonLd(schemas)}
   ${analyticsTag(settings)}
 </head>
-<body>
+<body id="top">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="container header-inner">
@@ -290,6 +321,7 @@ export function publicLayout({
     </div>
     <div class="container footer-small">© ${new Date().getFullYear()} ${escapeHtml(siteName)}. All rights reserved.</div>
   </footer>
+  <a class="to-top-button" href="#top" aria-label="Go to top" title="Go to top">&#8593;</a>
 </body>
 </html>`;
 }
@@ -334,7 +366,7 @@ export function articleListItem(article, options = {}) {
       ${articleMeta(article)}
       <h2><a href="${escapeAttr(article.url)}">${escapeHtml(article.title)}</a></h2>
       <p>${escapeHtml(article.excerpt)}</p>
-      <div class="byline">By ${escapeHtml(article.author)}</div>
+      ${article.showAuthor && article.authorName ? `<div class="byline">By ${escapeHtml(article.authorName)}</div>` : ""}
     </div>
   </article>`;
 }
@@ -366,6 +398,21 @@ function relatedArticlesSection(related) {
     </div>
     <div class="card-grid related-grid">
       ${related.length ? related.slice(0, 6).map((article) => articleCard(article)).join("") : emptyState("More articles in this category will appear here as they are published.")}
+    </div>
+  </section>`;
+}
+
+function articleSidebarSection(article, sidebarArticles = []) {
+  if (!sidebarArticles.length) return "";
+  const typeLabel = contentTypes[article.type]?.plural || "Articles";
+  return `<section class="article-sidebar-list" aria-labelledby="article-sidebar-title">
+    <h2 id="article-sidebar-title">More ${escapeHtml(typeLabel)}</h2>
+    <p>Latest articles near this one.</p>
+    <div class="article-sidebar-items">
+      ${sidebarArticles.map((item) => `<a class="article-sidebar-item" href="${escapeAttr(item.url)}">
+        <span>${escapeHtml(formatDate(item.publishedDate))}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+      </a>`).join("")}
     </div>
   </section>`;
 }
@@ -531,13 +578,17 @@ export function tagPage({ tag, articles }) {
   });
 }
 
-export function articlePage({ article, related = [] }) {
+export function articlePage({ article, related = [], sidebarArticles = [] }) {
   const siteUrl = settingsSiteUrl(loadSettings());
   const breadcrumbs = [
     { label: "Home", url: "/" },
     { label: contentTypes[article.type].plural, url: contentTypes[article.type].path },
     { label: article.title, url: article.url }
   ];
+  const bylineParts = [
+    article.showAuthor && article.authorName ? `By ${escapeHtml(article.authorName)}` : "",
+    article.showReviewer && article.reviewerName ? `Reviewed by ${escapeHtml(article.reviewerName)}` : ""
+  ].filter(Boolean);
   const body = `
     <article class="article-shell">
       <div class="container article-layout">
@@ -547,7 +598,7 @@ export function articlePage({ article, related = [] }) {
             ${articleMeta(article)}
             <h1>${escapeHtml(article.title)}</h1>
             <p class="dek">${escapeHtml(article.excerpt)}</p>
-            <div class="author-line">By ${escapeHtml(article.author)}${article.reviewedBy ? ` · Reviewed by ${escapeHtml(article.reviewedBy)}` : ""}</div>
+            ${bylineParts.length ? `<div class="author-line">${bylineParts.join(" · ")}</div>` : ""}
           </header>
           ${article.featuredImage ? `<figure class="featured-figure"><img src="${escapeAttr(article.featuredImage)}" alt="${escapeAttr(article.altText || article.title)}" width="1200" height="675" sizes="(min-width: 980px) 420px, 100vw" loading="eager" decoding="async" fetchpriority="high">${article.imageCaption ? `<figcaption>${escapeHtml(article.imageCaption)}</figcaption>` : ""}</figure>` : ""}
         </div>
@@ -560,6 +611,7 @@ export function articlePage({ article, related = [] }) {
             ${renderAd("article-bottom")}
           </div>
           <aside class="article-aside">
+            ${articleSidebarSection(article, sidebarArticles)}
             ${renderAd("article-sidebar")}
           </aside>
         </div>
@@ -572,11 +624,14 @@ export function articlePage({ article, related = [] }) {
     title: article.metaTitle,
     description: article.metaDescription,
     canonical: article.canonicalUrl || article.url,
+    ogTitle: article.ogTitle,
+    ogDescription: article.ogDescription,
+    ogImage: article.ogImage,
     ogType: "article",
-    image: article.featuredImage,
+    image: article.ogImage || article.featuredImage,
     imageAlt: article.altText,
     breadcrumbs,
-    schema: [articleSchema(article, siteUrl)],
+    schema: [articleSchema(article, siteUrl), faqSchema(article, siteUrl)],
     body
   });
 }

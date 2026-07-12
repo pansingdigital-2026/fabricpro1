@@ -610,53 +610,93 @@ textarea:focus-visible {
   margin-top: 30px;
 }
 
+.article-aside {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
 .article-content {
   max-width: 760px;
   font-size: 1.06rem;
 }
 
 .article-content h2 {
-  margin: 2.1em 0 0.45em;
-  font-size: 1.65rem;
-  line-height: 1.18;
+  margin: 36px 0 14px;
+  color: #0f172a;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .article-content h3 {
-  margin: 1.6em 0 0.35em;
-  font-size: 1.28rem;
-  line-height: 1.2;
+  margin: 26px 0 10px;
+  color: #1e293b;
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.article-content h4 {
+  margin: 22px 0 8px;
+  color: #334155;
+  font-size: 1.08rem;
+  font-weight: 750;
+  line-height: 1.35;
 }
 
 .article-content p,
 .article-content ul,
 .article-content ol {
-  margin: 0 0 1.2em;
+  margin: 0 0 20px;
+}
+
+.article-content p {
+  line-height: 1.75;
+}
+
+.article-content ul,
+.article-content ol {
+  padding-left: 1.4rem;
 }
 
 .article-content li {
-  margin-bottom: 0.35em;
+  margin-bottom: 8px;
+  line-height: 1.65;
 }
 
 .article-content blockquote {
   margin: 1.6em 0;
-  padding: 0 0 0 18px;
+  padding: 12px 18px;
+  background: #f8fbfa;
   border-left: 4px solid var(--accent, #16756f);
+  border-radius: 0 8px 8px 0;
   color: var(--muted, #5b6268);
+}
+
+.article-table-wrap {
+  overflow-x: auto;
+  margin: 24px 0;
 }
 
 .article-content table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.4em 0;
+  margin: 0;
   font-size: 0.95rem;
 }
 
 .article-content th,
 .article-content td {
-  padding: 10px;
-  border: 1px solid var(--border, #dfe5e2);
+  padding: 10px 12px;
+  border: 1px solid #d8e0e7;
   text-align: left;
   vertical-align: top;
+}
+
+.article-content th {
+  background: #f1f5f9;
+  font-weight: 700;
 }
 
 .article-content pre {
@@ -665,6 +705,151 @@ textarea:focus-visible {
   background: #f6f8f7;
   border: 1px solid var(--border, #dfe5e2);
   border-radius: 6px;
+}
+
+.article-key-takeaways {
+  margin: 28px 0;
+  padding: 20px;
+  background: #f4fbfa;
+  border: 1px solid #d6ebe8;
+  border-radius: 14px;
+}
+
+.article-key-takeaways h2,
+.article-key-takeaways h3 {
+  margin-top: 0;
+}
+
+.article-key-takeaways ul,
+.article-key-takeaways ol {
+  margin: 12px 0 0;
+  padding-left: 1.2rem;
+}
+
+.article-key-takeaways li {
+  margin-bottom: 8px;
+}
+
+.article-image {
+  margin: 30px 0;
+}
+
+.article-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+}
+
+.article-image figcaption {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.article-faq,
+.article-sources {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border, #dfe5e2);
+}
+
+.article-faq details {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border, #dfe5e2);
+}
+
+.article-faq summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.article-faq details div {
+  margin-top: 10px;
+}
+
+.article-sources ol {
+  padding-left: 1.25rem;
+}
+
+.article-sidebar-list {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--border, #dfe5e2);
+  border-radius: 8px;
+}
+
+.article-sidebar-list h2 {
+  margin: 0 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--text, #101214);
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.article-sidebar-list p {
+  margin: 10px 0 6px;
+  color: var(--muted, #5b6268);
+  font-size: 0.9rem;
+}
+
+.article-sidebar-items {
+  display: grid;
+}
+
+.article-sidebar-item {
+  display: grid;
+  gap: 4px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border, #dfe5e2);
+  color: var(--text, #101214);
+  text-decoration: none;
+}
+
+.article-sidebar-item:last-child {
+  border-bottom: 0;
+}
+
+.article-sidebar-item span {
+  color: var(--muted, #5b6268);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.article-sidebar-item strong {
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.article-sidebar-item:hover strong {
+  color: var(--accent, #16756f);
+}
+
+.to-top-button {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: var(--text, #101214);
+  border: 1px solid var(--text, #101214);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+}
+
+.to-top-button:hover {
+  background: var(--accent, #16756f);
+  border-color: var(--accent, #16756f);
+  color: #fff;
 }
 
 .tag-list {
@@ -755,7 +940,8 @@ textarea {
 }
 
 .checkbox-row,
-.inline-check {
+.inline-check,
+.check-label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -763,7 +949,8 @@ textarea {
 }
 
 .checkbox-row input,
-.inline-check input {
+.inline-check input,
+.check-label input {
   width: auto;
   min-height: 0;
 }
@@ -1042,6 +1229,65 @@ textarea {
   color: var(--muted, #5b6268);
 }
 
+.editor-tools {
+  display: grid;
+  gap: 16px;
+}
+
+.editor-tools h2 {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-fieldset {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border, #dfe5e2);
+  border-radius: 8px;
+}
+
+.admin-fieldset legend {
+  padding: 0 6px;
+  font-weight: 850;
+}
+
+.structured-list {
+  display: grid;
+  gap: 14px;
+}
+
+.structured-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid var(--border, #dfe5e2);
+  border-radius: 8px;
+}
+
+.docx-preview {
+  max-height: 520px;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--border, #dfe5e2);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.docx-preview h3 {
+  margin-top: 0;
+}
+
 .color-grid {
   display: grid;
   gap: 12px;
@@ -1102,6 +1348,11 @@ textarea {
   .form-grid.two,
   .stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .structured-row.source-row,
+  .form-grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .form-grid {

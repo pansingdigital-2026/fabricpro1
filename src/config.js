@@ -24,11 +24,11 @@ export const config = {
   adminEmail: process.env.ADMIN_EMAIL || "admin@fabric-pro.com",
   adminPassword: process.env.ADMIN_PASSWORD || "change-me-now",
   sessionSecret: process.env.SESSION_SECRET || "local-development-secret-change-me",
-  maxBodyBytes: 20 * 1024 * 1024,
+  maxBodyBytes: 40 * 1024 * 1024,
   googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || process.env.GOOGLE_VERIFICATION_CODE || "",
   bingSiteVerification: process.env.BING_SITE_VERIFICATION || process.env.BING_VERIFICATION_CODE || "",
   gaMeasurementId: process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "",
-  assetVersion: process.env.ASSET_VERSION || "20260624-fabricpro-typography",
+  assetVersion: process.env.ASSET_VERSION || "20260712-sticky-sidebar",
   github: {
     token: process.env.GITHUB_TOKEN || "",
     repo: process.env.GITHUB_REPO || "",

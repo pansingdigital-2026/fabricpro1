@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { renderArticleContent, normalizeFaqs, normalizeSources } from "./articleRenderer.js";
 import { config, contentTypes, defaultHeaderNavigation, paths } from "./config.js";
 import { markdownToHtml } from "./markdown.js";
 import {
@@ -160,11 +161,17 @@ function parseScalar(value = "") {
   if (!trimmed) return "";
   if (trimmed === "true") return true;
   if (trimmed === "false") return false;
+  if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        return trimmed.slice(1, -1).split(",").map((item) => parseScalar(item.trim())).filter(Boolean);
+      }
+    }
+  }
   if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
     return trimmed.slice(1, -1);
-  }
-  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-    return trimmed.slice(1, -1).split(",").map((item) => parseScalar(item.trim())).filter(Boolean);
   }
   return trimmed;
 }
@@ -185,7 +192,7 @@ export function parseFrontmatter(text = "") {
 }
 
 function quoteFrontmatter(value) {
-  if (Array.isArray(value)) return `[${value.map((item) => quoteFrontmatter(item)).join(", ")}]`;
+  if (Array.isArray(value) || (value && typeof value === "object")) return JSON.stringify(value);
   if (value === true || value === false) return String(value);
   const text = String(value ?? "");
   if (!text) return '""';
@@ -218,6 +225,24 @@ function readMarkdownFiles(dir) {
     .map((file) => path.join(dir, file));
 }
 
+function firstValue(data, keys, fallback = "") {
+  for (const key of keys) {
+    const value = data[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return fallback;
+}
+
+function booleanValue(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "boolean") return value;
+  return !["false", "0", "no", "off"].includes(String(value).trim().toLowerCase());
+}
+
+function keywordList(value) {
+  return normalizeTags(value);
+}
+
 function normalizeArticle(filePath, type, includeHidden = false) {
   const raw = fs.readFileSync(filePath, "utf8");
   const stat = fs.statSync(filePath);
@@ -225,40 +250,69 @@ function normalizeArticle(filePath, type, includeHidden = false) {
   const slug = slugify(data.slug || path.basename(filePath, path.extname(filePath)));
   const status = String(data.status || "published").toLowerCase();
   if (!includeHidden && status !== "published") return null;
-  const html = markdownToHtml(body);
-  const category = String(data.category || "Textile Industry").trim();
+  const category = String(firstValue(data, ["category"], "Textile Industry")).trim();
   const tags = normalizeTags(data.tags);
-  const publishedDate = data.publishedDate || stat.birthtime.toISOString();
-  const updatedDate = data.updatedDate || stat.mtime.toISOString();
-  return {
+  const publishedDate = firstValue(data, ["published_date", "publishedDate"], stat.birthtime.toISOString());
+  const updatedDate = firstValue(data, ["last_updated_date", "updated_date", "updatedDate"], stat.mtime.toISOString());
+  const title = String(data.title || slug).trim();
+  const contentFormat = String(firstValue(data, ["content_format", "contentFormat"], data.content_html || data.contentHtml ? "html" : "markdown")).toLowerCase();
+  const contentMarkdown = String(firstValue(data, ["content_markdown", "contentMarkdown"], contentFormat === "markdown" ? body : ""));
+  const contentHtml = String(firstValue(data, ["content_html", "contentHtml"], contentFormat === "html" || contentFormat === "docx_imported" ? body : ""));
+  const authorName = String(firstValue(data, ["author_name", "authorName", "author"], "Fabric-Pro Editorial Desk")).trim();
+  const reviewerName = String(firstValue(data, ["reviewer_name", "reviewerName", "reviewedBy"], "")).trim();
+  const articleDraft = {
     ...data,
     type,
     typeMeta: contentTypes[type],
     status,
-    title: String(data.title || slug).trim(),
-    metaTitle: String(data.metaTitle || data.title || slug).trim(),
-    metaDescription: String(data.metaDescription || data.excerpt || truncate(stripHtml(html), 155)).trim(),
+    title,
+    articleType: String(firstValue(data, ["article_type", "articleType"], type)).trim(),
     slug,
     url: articleUrl(type, slug),
-    canonicalUrl: data.canonicalUrl || articleUrl(type, slug),
+    canonicalUrl: firstValue(data, ["canonical_url", "canonicalUrl"], articleUrl(type, slug)),
     category,
     categorySlug: slugify(category),
-    author: String(data.author || "Fabric-Pro Editorial Desk").trim(),
-    reviewedBy: String(data.reviewedBy || "").trim(),
+    authorName,
+    author: authorName,
+    showAuthor: booleanValue(firstValue(data, ["show_author", "showAuthor"], ""), Boolean(authorName)),
+    reviewerName,
+    reviewedBy: reviewerName,
+    showReviewer: booleanValue(firstValue(data, ["show_reviewer", "showReviewer"], ""), Boolean(reviewerName)),
     publishedDate,
     updatedDate,
     lastmod: isoDate(updatedDate || publishedDate || stat.mtime),
-    featuredImage: String(data.featuredImage || "").trim(),
-    altText: String(data.altText || data.title || "").trim(),
-    imageCaption: String(data.imageCaption || data.caption || "").trim(),
+    featuredImage: String(firstValue(data, ["featured_image", "featuredImage"], "")).trim(),
+    altText: String(firstValue(data, ["featured_image_alt", "altText"], title)).trim(),
+    imageCaption: String(firstValue(data, ["image_caption", "imageCaption", "caption"], "")).trim(),
     tags,
     tagSlugs: tags.map((tag) => slugify(tag)),
-    excerpt: String(data.excerpt || truncate(stripHtml(html), 180)).trim(),
+    primaryKeyword: String(firstValue(data, ["primary_keyword", "primaryKeyword"], "")).trim(),
+    secondaryKeywords: keywordList(firstValue(data, ["secondary_keywords", "secondaryKeywords"], "")),
+    estimatedReadingTime: firstValue(data, ["estimated_reading_time", "estimatedReadingTime"], ""),
+    contentFormat,
+    contentMarkdown,
+    contentHtml,
+    keyTakeaways: firstValue(data, ["key_takeaways", "keyTakeaways"], []),
+    keyTakeawaysHtml: firstValue(data, ["key_takeaways_html", "keyTakeawaysHtml"], ""),
+    faqs: normalizeFaqs(firstValue(data, ["faqs", "faq"], [])),
+    sources: normalizeSources(data.sources || []),
+    ogTitle: String(firstValue(data, ["og_title", "ogTitle"], "")).trim(),
+    ogDescription: String(firstValue(data, ["og_description", "ogDescription"], "")).trim(),
+    ogImage: String(firstValue(data, ["og_image", "ogImage"], "")).trim(),
     bodyMarkdown: body,
-    html,
-    readingMinutes: readingTime(body),
     filePath,
     relativePath: path.relative(paths.rootDir, filePath).replace(/\\/g, "/")
+  };
+  const rendered = renderArticleContent(articleDraft);
+  const html = rendered.html;
+  return {
+    ...articleDraft,
+    metaTitle: String(firstValue(data, ["meta_title", "metaTitle"], title)).trim(),
+    metaDescription: String(firstValue(data, ["meta_description", "metaDescription"], data.excerpt || truncate(stripHtml(html), 155))).trim(),
+    excerpt: String(data.excerpt || truncate(stripHtml(html), 180)).trim(),
+    html,
+    rendered,
+    readingMinutes: Number(articleDraft.estimatedReadingTime) || readingTime(stripHtml(html))
   };
 }
 
