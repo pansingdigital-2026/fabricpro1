@@ -1,0 +1,211 @@
+/**
+ * Configurable constants for the deterministic readability analyser.
+ * Keep every threshold here so UI components never hard-code numbers.
+ */
+
+export type Audience = "general" | "business" | "technical";
+
+export const AUDIENCES: { value: Audience; label: string; min: number; max: number }[] = [
+  { value: "general", label: "General Consumer", min: 60, max: 80 },
+  { value: "business", label: "Business / Professional", min: 50, max: 70 },
+  { value: "technical", label: "Technical / Specialist", min: 40, max: 65 },
+];
+
+export const DEFAULT_AUDIENCE: Audience = "business";
+
+export const MAX_POINTS = {
+  sentenceLength: 20,
+  paragraphLength: 15,
+  readingEase: 20,
+  subheadings: 15,
+  passiveVoice: 10,
+  transitionWords: 10,
+  complexWords: 5,
+  repetitiveBeginnings: 5,
+} as const;
+
+export type CategoryKey = keyof typeof MAX_POINTS;
+
+export const CATEGORY_LABELS: Record<CategoryKey, string> = {
+  sentenceLength: "Sentence Length",
+  paragraphLength: "Paragraph Length",
+  readingEase: "Reading Ease",
+  subheadings: "Subheading Distribution",
+  passiveVoice: "Passive Voice",
+  transitionWords: "Transition Words",
+  complexWords: "Complex Words",
+  repetitiveBeginnings: "Repetitive Beginnings",
+};
+
+export const LIMITS = {
+  longSentenceWords: 20,
+  longSentenceTarget: 0.1,
+  paragraphIdealMin: 30,
+  paragraphIdealMax: 80,
+  paragraphMaxWords: 120,
+  subheadingMaxWords: 300,
+  passiveTarget: 0.1,
+  transitionTarget: 0.3,
+  repetitionRun: 3,
+} as const;
+
+export const RATING_BANDS: { min: number; label: string; tone: "good" | "warn" | "bad" }[] = [
+  { min: 85, label: "Excellent", tone: "good" },
+  { min: 75, label: "Good", tone: "good" },
+  { min: 60, label: "Needs Improvement", tone: "warn" },
+  { min: 40, label: "Difficult to Read", tone: "bad" },
+  { min: 0, label: "Poor", tone: "bad" },
+];
+
+export const PUBLISH_TARGET = 75;
+
+export const TRANSITION_PHRASES = [
+  "for example",
+  "for instance",
+  "as a result",
+  "in addition",
+  "in contrast",
+  "in other words",
+  "in fact",
+  "in conclusion",
+  "in summary",
+  "on the other hand",
+  "as well as",
+  "at the same time",
+  "even though",
+  "such as",
+  "that is why",
+  "to sum up",
+  "to begin with",
+  "by comparison",
+  "of course",
+  "above all",
+  "in particular",
+  "for this reason",
+  "in short",
+  "after all",
+  "as long as",
+  "so that",
+  "rather than",
+];
+
+export const TRANSITION_WORDS = [
+  "however",
+  "therefore",
+  "because",
+  "additionally",
+  "moreover",
+  "furthermore",
+  "consequently",
+  "meanwhile",
+  "although",
+  "nevertheless",
+  "nonetheless",
+  "similarly",
+  "likewise",
+  "finally",
+  "first",
+  "firstly",
+  "second",
+  "secondly",
+  "third",
+  "thirdly",
+  "next",
+  "then",
+  "instead",
+  "thus",
+  "hence",
+  "besides",
+  "accordingly",
+  "conversely",
+  "whereas",
+  "while",
+  "since",
+  "still",
+  "yet",
+  "also",
+  "but",
+  "so",
+  "overall",
+  "ultimately",
+  "specifically",
+  "notably",
+  "indeed",
+  "afterwards",
+  "previously",
+  "subsequently",
+  "unlike",
+  "despite",
+  "regardless",
+  "alternatively",
+  "importantly",
+  "generally",
+  "typically",
+  "essentially",
+];
+
+/** Common difficult words with a simpler everyday alternative. */
+export const COMPLEX_WORDS: Record<string, string> = {
+  utilize: "use",
+  utilise: "use",
+  utilization: "use",
+  approximately: "about",
+  methodology: "method",
+  commence: "start",
+  commencement: "start",
+  terminate: "end",
+  endeavour: "try",
+  endeavor: "try",
+  facilitate: "help",
+  demonstrate: "show",
+  ascertain: "find out",
+  subsequently: "later",
+  prior: "before",
+  additional: "extra",
+  sufficient: "enough",
+  numerous: "many",
+  purchase: "buy",
+  obtain: "get",
+  require: "need",
+  requirement: "need",
+  assistance: "help",
+  regarding: "about",
+  concerning: "about",
+  currently: "now",
+  initiate: "start",
+  implement: "carry out",
+  leverage: "use",
+  optimise: "improve",
+  optimize: "improve",
+  finalise: "finish",
+  finalize: "finish",
+  furthermore: "also",
+  nevertheless: "even so",
+  aforementioned: "this",
+  consolidate: "combine",
+  disseminate: "share",
+  expedite: "speed up",
+  fundamental: "basic",
+  aggregate: "total",
+  component: "part",
+  necessitate: "need",
+  transmit: "send",
+  visualise: "see",
+  visualize: "see",
+  encompass: "include",
+  proliferation: "growth",
+  paradigm: "model",
+  synergy: "teamwork",
+};
+
+/** Irregular past participles used by the passive-voice detector. */
+export const IRREGULAR_PARTICIPLES = [
+  "arisen","awoken","beaten","become","begun","bent","bound","bitten","bled","blown","broken",
+  "brought","built","burnt","bought","caught","chosen","come","cost","cut","dealt","done","drawn",
+  "driven","drunk","eaten","fallen","fed","felt","fought","found","flown","forgotten","frozen",
+  "given","gone","grown","hung","heard","hidden","hit","held","hurt","kept","known","laid","led",
+  "left","lent","let","lost","made","meant","met","paid","put","read","ridden","rung","risen",
+  "run","said","seen","sold","sent","set","shaken","shot","shown","shut","sung","sunk","sat",
+  "slept","spoken","spent","split","spread","stood","stolen","struck","sworn","taken","taught",
+  "torn","told","thought","thrown","understood","woken","worn","won","written","kept","dealt",
+];

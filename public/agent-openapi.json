@@ -1,0 +1,110 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fabric-Pro News Publishing API",
+    "version": "1.0.0",
+    "description": "List, publish, and edit textile industry news articles in the Fabric-Pro News section."
+  },
+  "servers": [
+    {
+      "url": "https://fabric-pro.com",
+      "description": "Fabric-Pro production site"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "SeoFields": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "maxLength": 160 },
+          "description": { "type": "string", "maxLength": 320 },
+          "focusKeyword": { "type": "string", "maxLength": 120 },
+          "secondaryKeywords": { "type": "string", "maxLength": 300 },
+          "searchIntent": { "type": "string", "maxLength": 120 },
+          "ogTitle": { "type": "string", "maxLength": 160 },
+          "ogDescription": { "type": "string", "maxLength": 320 },
+          "canonical": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "PublishUpdateRequest": {
+        "type": "object",
+        "required": ["title", "excerpt", "bodyMarkdown", "sourceName", "sourceUrl"],
+        "properties": {
+          "title": { "type": "string", "minLength": 3, "maxLength": 240 },
+          "slug": { "type": "string", "maxLength": 180 },
+          "excerpt": { "type": "string", "minLength": 10, "maxLength": 500 },
+          "bodyMarkdown": { "type": "string", "minLength": 20 },
+          "sourceName": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "sourceUrl": { "type": "string", "format": "uri" },
+          "featuredImageUrl": { "type": "string", "format": "uri", "description": "Optional HTTPS URL to a JPG, PNG, or WebP featured image (downloaded and hosted on Fabric-Pro)." },
+          "featuredImageAlt": { "type": "string", "maxLength": 250 },
+          "categorySlug": {
+            "type": "string",
+            "description": "Approved Fabric-Pro category slug (textile-industry, textile-machinery, sustainable-fabrics, textile-recycling, fabric-manufacturing, apparel-materials, technical-textiles, smart-textiles, dyeing-and-finishing, supply-chain-and-sourcing, textile-exports, policy-and-regulations)."
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 4,
+            "items": { "type": "string" },
+            "description": "Up to 4 approved tag slugs or names from Fabric-Pro's approved textile tags."
+          },
+          "authorSlug": { "type": "string" },
+          "seo": { "$ref": "#/components/schemas/SeoFields" }
+        }
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/api/public/agent/updates": {
+      "get": {
+        "operationId": "listRecentNews",
+        "summary": "List recent published Fabric-Pro News articles",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Recent news articles" }
+        }
+      },
+      "post": {
+        "operationId": "publishNewsArticle",
+        "summary": "Create or publish a Fabric-Pro News article (honors Admin -> News Automation auto-publish setting)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PublishUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created news article" },
+          "409": { "description": "Duplicate sourceUrl" }
+        }
+      }
+    },
+    "/api/public/agent/updates/{id}": {
+      "patch": {
+        "operationId": "editNewsArticle",
+        "summary": "Edit an existing Fabric-Pro News article",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Updated news article" }
+        }
+      }
+    }
+  }
+}
